@@ -1,39 +1,109 @@
+import { useAuth } from '@/hooks/useAuth';
+import { userService } from '@/services/user.service';
+import { UserProps } from '@/types/user';
 import { useEffect, useState } from 'react';
-import { getDataProps } from '@/types/data';
-import { dataService } from '@/services';
-import 'bootstrap/dist/css/bootstrap.min.css';
-const Home = () => {
+import Tab from 'react-bootstrap/Tab';
+import Tabs from 'react-bootstrap/Tabs';
+import dynamic from 'next/dynamic';
+import { NextPageWithLayout } from '@/types/page';
+import Layout from '@/libs/common-layout/layout';
+import { HOME_META_DATA } from '@/constants/meta-data';
 
-  const [data, setData] = useState<getDataProps[]>([]);
+const DynamicCustomerDetails = dynamic(() => import("./CustomerDetails"), {
+  loading: () => <p>Loading...</p>,
+  ssr: false,
+});
+
+const DynamicTopMeasurements = dynamic(() => import("./TopMeasurements"), {
+  loading: () => <p>Loading...</p>,
+  ssr: false,
+});
+
+const DynamicBottomMeasurements = dynamic(() => import("./BottomMeasurements"), {
+  loading: () => <p>Loading...</p>,
+  ssr: false,
+});
+
+const DynamicReviewCustomer = dynamic(() => import("./ReviewCustomer"), {
+  loading: () => <p>Loading...</p>,
+  ssr: false,
+});
+
+const Home: NextPageWithLayout = () => {
+  const { user, logout } = useAuth();
+  const [key, setKey] = useState('customer');
+  const [data, setData] = useState<UserProps | null>(null);
+  const [customerData, setCustomerData] = useState({});
 
   useEffect(() => {
-    dataService
-      .getAll()
-      .then((res) => {
-        setData(res);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, []);
+    if (user?.emailID) {
+      userService
+        .dashboard({ emailID: user.emailID })
+        .then((res) => setData(res))
+        .catch((err) => console.error(err));
+    }
+  }, [user]);
 
-  console.log(data, "data");
+  const handleNext = () => {
+    switch (key) {
+      case "customer":
+        setKey("top-measurements");
+        break;
+      case "top-measurements":
+        setKey("bottom-measurements");
+        break;
+      case "bottom-measurements":
+        setKey("review-customer");
+        break;
+      default:
+        break;
+    }
+  };
+
+  
+
+  console.log(customerData, "customerData")
 
   return (
-    <>
-      {data.length > 0 && (
-        <div>
-          {data.map((item, index) => (
-            <div key={index}>
-              <p>ID: {index}</p>
-              <p>Name: {item.name}</p>
-              <p>Description: {item.description}</p>
-            </div>
-          ))}
-        </div>
-      )}
+    <> 
+      <Tabs
+        id="controlled-tab-example"
+        activeKey={key}
+        onSelect={(k:any) => setKey(k)}
+        className="mb-3"
+      >
+        <Tab eventKey="customer" title="Customer Details">
+          <DynamicCustomerDetails 
+          setCustomerData={setCustomerData} 
+          onNextClick={handleNext}
+          />
+        </Tab>
+        <Tab eventKey="top-measurements" title="Top Measurements">
+          <DynamicTopMeasurements 
+          setCustomerData={setCustomerData} 
+          onNextClick={handleNext}
+          />
+        </Tab>
+        <Tab eventKey="bottom-measurements" title="Bottom Measurements">
+          <DynamicBottomMeasurements 
+          customerData={customerData} 
+          onNextClick={handleNext}
+          setCustomerData={setCustomerData} 
+          />
+        </Tab>
+        <Tab eventKey="review-customer" title="Review">
+          <DynamicReviewCustomer 
+          customerData={customerData}
+           />
+        </Tab>
+      </Tabs>
     </>
   );
 };
+
+Home.metadata=HOME_META_DATA
+Home.getLayout = function getLayout(page){
+  return <Layout>{page}</Layout>
+}
 
 export default Home;

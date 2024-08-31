@@ -14,3 +14,8 @@ export type getDataProps = {
     mobileNo: number;
   };
   
+
+  export interface UserProps {
+    firstName: string;
+    emailID: string;
+  }

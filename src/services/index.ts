@@ -1,1 +1,1 @@
-export * from "./data.service"
+export * from "./customer.service"
