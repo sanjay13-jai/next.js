@@ -39,7 +39,7 @@ export const AuthWrapper = ({ children }: { children: JSX.Element }) => {
     const user = getItem("user") || {};
     const isLoggedIn = getCookie('isLoggedIn');
     const token = getCookie('token');
-    if (url.endsWith('/login') && user && isLoggedIn) {
+    if (url.endsWith('/account/login') && user && isLoggedIn) {
       router.push({ pathname: '/', query });
       return;
     }
@@ -53,10 +53,10 @@ export const AuthWrapper = ({ children }: { children: JSX.Element }) => {
     const isLoggedIn = getCookie('isLoggedIn');
     // const user = JSON.parse(localStorage.getItem('user') || '{}');
     const user = getItem("user") || {};
-    const publicPaths = ['/login', '/register'];
+    const publicPaths = ['/account/login', '/register'];
     const path = url.split('?')[0];
     if ((!user || !isLoggedIn) && !publicPaths.includes(path)) {
-      router.push({ pathname: '/login', query });
+      router.push({ pathname: '/account/login', query });
     }
   }
 
